@@ -1,28 +1,21 @@
 let timerInterval = null;
-let intervalDuration = 30;
-let currentIntervalTime = 30;
-let totalColumns = 5;
-let currentColumnIndex = 0;
+let timeLeft = 30;
 let columnsData = [];
-const rowsPerColumn = 40;
+const rowsPerColumn = 30; // 30 angka per-kolom (29 baris isian)
 
 const setupScreen = document.getElementById('setup-screen');
 const testScreen = document.getElementById('test-screen');
 const resultScreen = document.getElementById('result-screen');
 
-const intervalSelect = document.getElementById('interval-select');
+const timeSelect = document.getElementById('time-select');
 const colsSelect = document.getElementById('cols-select');
 const startBtn = document.getElementById('start-btn');
 const finishBtn = document.getElementById('finish-btn');
 const restartBtn = document.getElementById('restart-btn');
 
 const timerDisplay = document.getElementById('timer-display');
-const colDisplay = document.getElementById('col-display');
-const totalColsDisplay = document.getElementById('total-cols-display');
+const answeredCountDisplay = document.getElementById('answered-count');
 const pauliSheet = document.getElementById('pauli-sheet');
-
-// Efek audio BEEP saat waktu interval habis
-const beepAudio = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
 
 startBtn.addEventListener('click', startTest);
 finishBtn.addEventListener('click', endTest);
@@ -37,17 +30,14 @@ function generateRandomNumbers(count) {
 }
 
 function startTest() {
-  intervalDuration = parseInt(intervalSelect.value, 10);
-  totalColumns = parseInt(colsSelect.value, 10);
-  currentColumnIndex = 0;
-  currentIntervalTime = intervalDuration;
+  timeLeft = parseInt(timeSelect.value, 10);
+  const numCols = parseInt(colsSelect.value, 10);
 
-  timerDisplay.textContent = currentIntervalTime;
-  colDisplay.textContent = currentColumnIndex + 1;
-  totalColsDisplay.textContent = totalColumns;
+  timerDisplay.textContent = timeLeft;
+  answeredCountDisplay.textContent = '0';
 
   columnsData = [];
-  for (let c = 0; c < totalColumns; c++) {
+  for (let c = 0; c < numCols; c++) {
     columnsData.push(generateRandomNumbers(rowsPerColumn));
   }
 
@@ -57,63 +47,16 @@ function startTest() {
   resultScreen.classList.add('hidden');
   testScreen.classList.remove('hidden');
 
-  focusFirstInputOfColumn(0);
+  const firstInput = pauliSheet.querySelector('.pauli-input');
+  if (firstInput) firstInput.focus();
 
-  startTimer();
-}
-
-function startTimer() {
-  clearInterval(timerInterval);
   timerInterval = setInterval(() => {
-    currentIntervalTime--;
-    timerDisplay.textContent = currentIntervalTime;
-
-    if (currentIntervalTime <= 0) {
-      handleIntervalEnd();
+    timeLeft--;
+    timerDisplay.textContent = timeLeft;
+    if (timeLeft <= 0) {
+      endTest();
     }
   }, 1000);
-}
-
-function handleIntervalEnd() {
-  // Bunyi Peringatan
-  beepAudio.play().catch(() => {});
-
-  // Tandai input terakhir yang diisi
-  markLastFilledInput(currentColumnIndex);
-
-  currentColumnIndex++;
-
-  if (currentColumnIndex < totalColumns) {
-    // Pindah ke kolom berikutnya
-    currentIntervalTime = intervalDuration;
-    timerDisplay.textContent = currentIntervalTime;
-    colDisplay.textContent = currentColumnIndex + 1;
-    focusFirstInputOfColumn(currentColumnIndex);
-  } else {
-    // Jika semua kolom selesai
-    endTest();
-  }
-}
-
-function markLastFilledInput(colIdx) {
-  const inputs = pauliSheet.querySelectorAll(`.pauli-input[data-col="${colIdx}"]`);
-  let lastFilled = null;
-
-  inputs.forEach(input => {
-    if (input.value !== '') lastFilled = input;
-  });
-
-  if (lastFilled) {
-    lastFilled.classList.add('interval-marker');
-  }
-}
-
-function focusFirstInputOfColumn(colIdx) {
-  const firstInput = pauliSheet.querySelector(`.pauli-input[data-col="${colIdx}"][data-row="0"]`);
-  if (firstInput) {
-    firstInput.focus();
-    firstInput.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  }
 }
 
 function renderPauliSheet() {
@@ -124,11 +67,13 @@ function renderPauliSheet() {
     colDiv.className = 'pauli-column';
 
     for (let r = 0; r < colNumbers.length; r++) {
+      // Angka
       const numDiv = document.createElement('div');
       numDiv.className = 'num-cell';
       numDiv.textContent = colNumbers[r];
       colDiv.appendChild(numDiv);
 
+      // Input kotak isian antara dua angka
       if (r < colNumbers.length - 1) {
         const input = document.createElement('input');
         input.type = 'text';
@@ -153,6 +98,7 @@ function handleInput(e) {
   input.value = input.value.replace(/[^0-9]/g, '');
 
   if (input.value.length === 1) {
+    updateAnsweredCount();
     navigateNext(input);
   }
 }
@@ -163,7 +109,7 @@ function handleKeyDown(e) {
   const row = parseInt(input.dataset.row, 10);
 
   if (e.key === 'Tab' || e.key === 'Enter' || e.key === 'ArrowDown') {
-    e.preventDefault();
+    e.preventDefault(); // Hindari pemicu default browser tab
     navigateNext(input);
   } else if (e.key === 'ArrowUp') {
     e.preventDefault();
@@ -181,8 +127,12 @@ function navigateNext(currentInput) {
   const col = parseInt(currentInput.dataset.col, 10);
   const row = parseInt(currentInput.dataset.row, 10);
 
+  // Jika masih ada baris di bawah pada kolom yang sama
   if (row < rowsPerColumn - 2) {
     moveFocus(col, row + 1);
+  } else {
+    // Jika kolom habis, pindah ke baris pertama pada kolom di sebelahnya
+    moveFocus(col + 1, 0);
   }
 }
 
@@ -192,6 +142,15 @@ function moveFocus(col, row) {
     target.focus();
     target.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
+}
+
+function updateAnsweredCount() {
+  const inputs = pauliSheet.querySelectorAll('.pauli-input');
+  let count = 0;
+  inputs.forEach(inp => {
+    if (inp.value !== '') count++;
+  });
+  answeredCountDisplay.textContent = count;
 }
 
 function endTest() {
@@ -209,7 +168,7 @@ function endTest() {
     const num2 = columnsData[col][row + 1];
     const expected = (num1 + num2) % 10;
 
-    input.disabled = true;
+    input.disabled = true; // Kunci input agar tidak bisa diubah
 
     if (input.value !== '') {
       totalAnswered++;
@@ -230,6 +189,7 @@ function endTest() {
   document.getElementById('res-wrong').textContent = wrong;
   document.getElementById('res-accuracy').textContent = `${accuracy}%`;
 
+  // Tetap tampilkan lembar tes agar pengguna bisa me-review
   resultScreen.classList.remove('hidden');
 }
 

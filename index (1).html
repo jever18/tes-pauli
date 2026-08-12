@@ -3,28 +3,30 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Simulasi Tes Pauli / Koran</title>
+  <title>Simulasi Lembar Tes Pauli / Koran</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="container">
-    <h1>Tes Pauli / Koran (Interval Time)</h1>
+    <h1>Lembar Tes Pauli / Koran</h1>
 
     <div id="setup-screen" class="card">
       <div class="form-group">
-        <label for="interval-select">Durasi per Kolom / Interval:</label>
-        <select id="interval-select">
+        <label for="time-select">Durasi Waktu:</label>
+        <select id="time-select">
           <option value="30">30 Detik</option>
           <option value="60">60 Detik</option>
+          <option value="120">120 Detik</option>
+          <option value="300">300 Detik (5 Menit)</option>
         </select>
       </div>
 
       <div class="form-group">
-        <label for="cols-select">Jumlah Kolom:</label>
+        <label for="cols-select">Jumlah Kolom Tampilan:</label>
         <select id="cols-select">
-          <option value="3">3 Kolom</option>
-          <option value="5" selected>5 Kolom</option>
-          <option value="10">10 Kolom</option>
+          <option value="4">4 Kolom</option>
+          <option value="6" selected>6 Kolom</option>
+          <option value="8">8 Kolom</option>
         </select>
       </div>
 
@@ -33,32 +35,31 @@
 
     <div id="test-screen" class="card hidden">
       <div class="header-info">
-        <div class="timer">Waktu Kolom: <span id="timer-display">30</span>s</div>
-        <div class="current-col">Kolom: <span id="col-display">1</span> / <span id="total-cols-display">5</span></div>
+        <div class="timer">Sisa Waktu: <span id="timer-display">30</span>s</div>
+        <div class="score-live">Terjawab: <span id="answered-count">0</span></div>
       </div>
 
       <div class="instructions">
-        Tekan <b>Tab</b>, <b>Enter</b>, atau <b>Panah Bawah</b> untuk pindah sel. Saat waktu interval habis, kursor otomatis pindah ke kolom berikutnya!
+        Tekan <b>Tab</b>, <b>Enter</b>, atau <b>Panah Bawah</b> untuk pindah sel. Isikan angka satuan hasil penjumlahan 2 angka vertikal.
       </div>
 
+      <!-- Container Lembaran Kertas Tes -->
       <div id="pauli-sheet" class="pauli-sheet"></div>
 
-      <button id="finish-btn" class="secondary-btn">Selesai Lebih Cepat</button>
+      <button id="finish-btn" class="secondary-btn">Selesai Sekarang</button>
     </div>
 
     <div id="result-screen" class="card hidden">
-      <h2>Hasil Tes Pauli</h2>
+      <h2>Hasil Tes</h2>
       <div class="result-stats">
         <p>Total Dikerjakan: <strong id="res-total">0</strong></p>
         <p>Jawaban Benar: <strong id="res-correct" class="text-success">0</strong></p>
         <p>Jawaban Salah: <strong id="res-wrong" class="text-danger">0</strong></p>
-        <p>Akurasi Total: <strong id="res-accuracy">0%</strong></p>
+        <p>Akurasi: <strong id="res-accuracy">0%</strong></p>
       </div>
-
-      <div class="review-hint">
-        💡 **Peringatan Pindah Kolom**: Garis merah tebal menandakan batas angka terakhir yang kamu isi sebelum interval waktu habis. Hijau = Benar, Merah = Salah.
-      </div>
-
+      
+      <p class="review-hint">💡 Kamu bisa scroll ke lembar tes di atas untuk mempelajari & mereview koreksi jawabanmu (Hijau = Benar, Merah = Salah).</p>
+      
       <button id="restart-btn">Ulangi Tes</button>
     </div>
   </div>
